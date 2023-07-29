@@ -36,7 +36,7 @@ MonoBehaviour:
   - id: SpendCoins
     title: Spend coins.
     description: Spend {0} coins.
-    initialValue: 0
+    initialValue: 40
     example: Spend 30 coin
   - id: ExtraWords
     title: Find Extra words.

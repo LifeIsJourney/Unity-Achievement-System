@@ -55,6 +55,14 @@ namespace AchievementSystem
             achievementNotificationController.ShowNotification(achievement);
         }
 
+        public void Restart()
+        {
+            PlayerPrefs.DeleteKey(PrefsKey);
+            achievementsMaker.LoadOrMakeAchievements();
+            achievementDropdownController.onValueChanged -= HandleAchievementDropdownValueChanged;
+            LoadAchievementsTable();
+        }
+
         private void HandleAchievementDropdownValueChanged(AchievementID achievement)
         {
             achievementToShow = achievement;

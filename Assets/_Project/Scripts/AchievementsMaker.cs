@@ -26,6 +26,8 @@ namespace AchievementSystem
             achievementString = PlayerPrefs.GetString(AchievementManager.PrefsKey,string.Empty);
             achievementManager.currentAchievements = new CurrentAchievements();
             achievementManager.currentAchievements.achievements = new List<Achievement>();
+            List<AchievementID> achievementIDs = new List<AchievementID>();
+            List<string> achievementValues = new List<string>();
             // if(user level > AchievementManager.UnlockLevel)
             if (true)
             {
@@ -35,8 +37,8 @@ namespace AchievementSystem
 
                     foreach (var achievement in achievementManager.savedAchievements.achievements)
                     {
-                        achievementManager.currentAchievements.achievements
-                            .Add(LoadAchievements(achievement.achievementID, achievement.userValue));
+                        achievementIDs.Add(achievement.achievementID);
+                        achievementValues.Add(achievement.userValue);
                     }
                 }
                 else
@@ -48,17 +50,21 @@ namespace AchievementSystem
                         achievementList.Add(val);
                     }
 
-                    List<AchievementID> randomCombinations = GetRandomUniqueCombinations(achievementList,
+                   achievementIDs = GetRandomUniqueCombinations(achievementList,
                         AchievementManager.MaxConcurrentAchievementCount);
 
                     //Fill achievement value
-                    CreateNewAchievements(randomCombinations);
+                    achievementValues = CreateNewAchievements(achievementIDs);
 
                     // Save achievements
-                    SaveNewAchievements(randomCombinations);
+                    SaveNewAchievements(achievementIDs, achievementValues);
                 }
+
+                ShowAchievements(achievementIDs, achievementValues);
             }
         }
+
+       
         public List<AchievementID> GetRandomUniqueCombinations(List<AchievementID> allValues, int count)
         {
             System.Random random = new System.Random();
@@ -76,8 +82,10 @@ namespace AchievementSystem
             return allValues.GetRange(0, Math.Min(n, count));
         }
 
-        private void CreateNewAchievements(List<AchievementID> randomCombinations)
+        private List<string> CreateNewAchievements(List<AchievementID> randomCombinations)
         {
+            List<string> achievementValues = new List<string>();
+
             foreach (var achievement in randomCombinations)
             {
                 if (achievement == AchievementID.BeatLevel || achievement == AchievementID.UseHint
@@ -85,17 +93,38 @@ namespace AchievementSystem
                     || achievement == AchievementID.ExtraWords || achievement == AchievementID.MakeWords
                     || achievement == AchievementID.MakeVovelsWords)
                 {
-                    MakeSingleUnknownValueAchievement(achievement);
+                  achievementValues.Add(MakeSingleUnknownValueAchievement(achievement));
                 }
                 else if (achievement == AchievementID.PlayWord
                     || achievement == AchievementID.MakeLetterWords)
                 {
-                    MakeTwoUnknownValueAchievement(achievement);
+                    achievementValues.Add(MakeTwoUnknownValueAchievement(achievement));
                 }
             }
+            return achievementValues;
         }
 
-        private void SaveNewAchievements(List<AchievementID> randomCombinations)
+        private string MakeTwoUnknownValueAchievement(AchievementID achievement)
+        {
+            Achievement tmp = achievementDatabase.GetAchievement(achievement.ToString());
+            
+            int userLevel = 1;
+            int[] changingValue = new int[] { tmp.initialValue * userLevel, Rand.Range(4, 6) };
+            char charValue = GetCharacter();
+            return ParseUserValue(userLevel, changingValue,charValue);
+        }
+
+        private string MakeSingleUnknownValueAchievement(AchievementID achievement)
+        {
+            Achievement tmp = achievementDatabase.GetAchievement(achievement.ToString());
+           
+            //necessary value
+            int userLevel = 1; int[] changingValue = new int[] { tmp.initialValue * userLevel };
+
+            return ParseUserValue(userLevel, changingValue);
+        }
+
+        private void SaveNewAchievements(List<AchievementID> randomCombinations, List<string> achievementValues)
         {
             achievementManager.savedAchievements = new SavedAchievements()
             {
@@ -107,7 +136,7 @@ namespace AchievementSystem
                 achievementManager.savedAchievements.achievements[i] = new AchievementWithValue()
                 {
                     achievementID = randomCombinations[i],
-                    userValue = ParseUserValue(achievementManager.currentAchievements.achievements[i])
+                    userValue = achievementValues[i]
                 };
             }
 
@@ -115,41 +144,16 @@ namespace AchievementSystem
             PlayerPrefs.SetString(AchievementManager.PrefsKey, achievementString);
         }
 
-      
-
-
-        private void MakeTwoUnknownValueAchievement(AchievementID achievement)
+        private void ShowAchievements(List<AchievementID> achievementIds, List<string> achievementValues)
         {
-            Achievement tmp = achievementDatabase.GetAchievement(achievement.ToString());
-            
-            Achievement achievement1 = new Achievement(tmp.id, tmp.title, tmp.description, tmp.userLevel,
-               new int[] { tmp.initialValue * 1,Rand.Range(4,6) }, GetCharacter());
-
-            if (achievement == AchievementID.PlayWord)
-                achievement1.title = string.Format(tmp.title, achievement1.charValue);
-
-            if (achievement == AchievementID.PlayWord)
-                achievement1.description =
-                 string.Format(achievement1.description,
-                 achievement1.changingValue[0], achievement1.charValue);
-            else if (achievement == AchievementID.MakeVovelsWords)
-                achievement1.description =
-                 string.Format(achievement1.description,
-                 achievement1.changingValue[0], achievement1.changingValue[1]);
-
-            achievementManager.currentAchievements.achievements.Add(achievement1);
+            for (int i = 0; i < achievementIds.Count; i++)
+            {
+                achievementManager.currentAchievements.achievements.Add(ShowAchievement(achievementIds[i],
+                    achievementValues[i]));
+            }
         }
 
-        private void MakeSingleUnknownValueAchievement(AchievementID achievement)
-        {
-            Achievement tmp = achievementDatabase.GetAchievement(achievement.ToString());
-            Achievement achievement1 = new Achievement(tmp.id, tmp.title, tmp.description, 1,
-               new int[] { tmp.initialValue * tmp.userLevel });
-
-            achievement1.description = string.Format(achievement1.description, achievement1.changingValue[0]);
-            achievementManager.currentAchievements.achievements.Add(achievement1);
-        }
-        Achievement LoadAchievements(AchievementID achievement, string savedValue)
+        Achievement ShowAchievement(AchievementID achievement, string savedValue)
         {
             int userLevel; int[] changingValue;char charValue;
             GetDataFromSavedValue(savedValue, out userLevel, out changingValue ,out charValue);
@@ -195,11 +199,11 @@ namespace AchievementSystem
             if (achievement == AchievementID.PlayWord)
                 achievement1.description =
                  string.Format(achievement1.description,
-                 achievement1.changingValue[0], achievement1.charValue);
+                 achievement1.changingValue[0], AddSingleQuotes(achievement1.charValue.ToString()));
             if (achievement == AchievementID.MakeLetterWords)
                 achievement1.description =
                 string.Format(achievement1.description,
-                achievement1.changingValue[0], achievement1.changingValue[1]);
+                achievement1.changingValue[0], AddSingleQuotes(achievement1.changingValue[1].ToString()));
 
             return achievement1;
         }
@@ -226,7 +230,33 @@ namespace AchievementSystem
 
             return userValue;
         }
+        string ParseUserValue(int userLevel, int[] changingValue,char charValue)
+        {
+            string userValue = string.Empty;
 
+            userValue += userLevel;
+            userValue += splitChar;
+            bool removeFirstComma = true;
+            foreach (var intValue in changingValue)
+            {
+                if (removeFirstComma)
+                {
+                    removeFirstComma = false;
+                    userValue += intValue.ToString();
+                }
+                else
+                    userValue += ',' + intValue.ToString();
+            }
+            userValue += splitChar;
+            userValue += charValue;
+
+            return userValue;
+        }
+
+        string ParseUserValue(int userLevel, int[] changingValue)
+        {
+           return ParseUserValue(userLevel, changingValue, '!');
+        }
         void GetDataFromSavedValue(string savedValue,out int userLevel,out int[] changingValue,out char charValue)
         {
            string[] split = savedValue.Split(splitChar);
