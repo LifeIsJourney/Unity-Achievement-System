@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -12,16 +13,48 @@ MonoBehaviour:
   m_Name: Achievement Database
   m_EditorClassIdentifier: 
   achievements:
-    array:
-    - id: FinalOne
-      title: The last achievement ever
-      description: Some Description should go here
-    - id: HelloWorld
-      title: Hello World!
-      description: Some Description shoul
-    - id: GoodBye
-      title: Good Bye!
-      description: Some Description should
-    - id: NewOne
-      title: A new Achievement
-      description: Has appeared!
+  - id: BeatLevel
+    title: Beat daily Level
+    description: Beat {0} level
+    initialValue: 10
+    example: Beat 50 level
+  - id: PlayWord
+    title: Play the Letter {0}
+    description: Play {0},{1} Letter Word
+    initialValue: 10
+    example: Play the letter 'S', Play 50,'S' Letter word
+  - id: UseHint
+    title: Use hint.
+    description: Use {0} hint
+    initialValue: 1
+    example: Use 1 hint
+  - id: EarnCoin
+    title: Earn coins.
+    description: Earn {0} coins.
+    initialValue: 30
+    example: Earn 30 coin
+  - id: SpendCoins
+    title: Spend coins.
+    description: Spend {0} coins.
+    initialValue: 0
+    example: Spend 30 coin
+  - id: ExtraWords
+    title: Find Extra words.
+    description: Find {0} Extra words.
+    initialValue: 10
+    example: FInd 10 extra word
+  - id: MakeWords
+    title: Make word
+    description: Make {0} words.
+    initialValue: 50
+    example: Make 20 word
+  - id: MakeLetterWords
+    title: Make word of Letters
+    description: Make {0}, {1} Letter words.
+    initialValue: 10
+    example: Make 5,'4' letter word
+  - id: MakeVovelsWords
+    title: Make words with vovels
+    description: Make {0} words with vovels.
+    initialValue: 10
+    example: Make 5 word with vowels

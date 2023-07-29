@@ -2,13 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using Malee;
 
-[CreateAssetMenu()]
-public class AchievementDatabase : ScriptableObject {
-    [Reorderable(sortable = false, paginate = false)]
-    public AchievementsArray achievements;
+namespace AchievementSystem
+{
+    /// <summary>
+    /// Contain list of all the achievements
+    /// </summary>
+    [CreateAssetMenu()]
+    public class AchievementDatabase : ScriptableObject
+    {
 
-    [System.Serializable]
-    public class AchievementsArray : ReorderableArray<Achievement> { }
+        public List<Achievement> achievements;
+
+        public Achievement GetAchievement(string Id)
+        {
+            foreach (var achievement in achievements)
+            {
+                if (Id == achievement.id) return achievement;
+            }
+            return null;
+        }
+    }
 }

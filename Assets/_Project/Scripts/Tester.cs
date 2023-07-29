@@ -2,14 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tester : MonoBehaviour {
 
-    public AchievementManager achievementManager;
-
-
-    public void MilestoneReached()
+namespace AchievementSystem
+{
+    public class Tester : MonoBehaviour
     {
-        achievementManager.UnlockAchievement(AchievementID.GoodBye);
-    }
 
+        public AchievementManager achievementManager;
+
+
+        public void MilestoneReached()
+        {
+            achievementManager.UnlockAchievement(AchievementID.BeatLevel);
+        }
+
+    }
 }

@@ -1,6 +1,11 @@
 public enum AchievementID {
-	FinalOne,
-	HelloWorld,
-	GoodBye,
-	NewOne,
+	BeatLevel,
+	PlayWord,
+	UseHint,
+	EarnCoin,
+	SpendCoins,
+	ExtraWords,
+	MakeWords,
+	MakeLetterWords,
+	MakeVovelsWords,
 }
