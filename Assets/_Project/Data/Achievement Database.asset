@@ -20,7 +20,7 @@ MonoBehaviour:
     example: Beat 50 level
   - id: PlayWord
     title: Play the Letter {0}
-    description: Play {0},{1} Letter Word
+    description: Make  {0},{1} Letter Word
     initialValue: 10
     example: Play the letter 'S', Play 50,'S' Letter word
   - id: UseHint

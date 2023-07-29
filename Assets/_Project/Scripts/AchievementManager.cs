@@ -128,5 +128,65 @@ namespace AchievementSystem
             }
         }
 
+        public void LoadAchievements()
+        {
+            string achievementString = PlayerPrefs.GetString(PrefsKey, string.Empty);
+            savedAchievements = JsonUtility.FromJson<SavedAchievements>(achievementString);
+        }
+
+        public void SaveAchievements()
+        {
+            string achievementString = JsonUtility.ToJson(savedAchievements);
+            PlayerPrefs.SetString(PrefsKey, achievementString);
+        }
+
+        public List<Achievement> GetLoadedAchievements(AchievementDatabase achievementDatabase)
+        {
+            List<Achievement> loadedAchievements = new List<Achievement>();
+
+            if (savedAchievements != null)
+            {
+                foreach (var achievement in savedAchievements.achievements)
+                {
+
+                    int userLevel;
+                    int[] changingValue;
+                    char charValue;
+                    GetDataFromSavedValue(achievement.userValue, out userLevel, out changingValue, out charValue);
+
+                    Achievement loadedAchievement = 
+                        AchievementFactory.CreateAchievement(achievement.achievementID, achievementDatabase,userLevel,
+                        changingValue,charValue);
+                    
+                    loadedAchievement.userLevel = userLevel;
+                    loadedAchievement.changingValue = changingValue;
+                    loadedAchievement.charValue = charValue;
+
+                    
+                    loadedAchievements.Add(loadedAchievement);
+
+                }
+            }
+
+            return loadedAchievements;
+        }
+
+        private void GetDataFromSavedValue(string savedValue, out int userLevel, out int[] changingValue, out char charValue)
+        {
+            string[] split = savedValue.Split('@');
+
+            int.TryParse(split[0], out userLevel);
+
+            string[] _changingValueSplit = split[1].Split(',');
+            changingValue = new int[_changingValueSplit.Length];
+
+            for (int i = 0; i < changingValue.Length; i++)
+            {
+                int.TryParse(_changingValueSplit[i], out changingValue[i]);
+            }
+
+            char.TryParse(split[2], out charValue);
+        }
+
     }
 }

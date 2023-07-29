@@ -21,5 +21,11 @@ namespace AchievementSystem
 
             return achievement;
         }
+
+
+        public static string AddSingleQuotes(string value)
+        {
+            return "\'" + value + "\'";
+        }
     }
 }

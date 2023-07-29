@@ -11,7 +11,6 @@ namespace AchievementSystem
     [CreateAssetMenu()]
     public class AchievementDatabase : ScriptableObject
     {
-
         public List<Achievement> achievements;
 
         public Achievement GetAchievement(string Id)
