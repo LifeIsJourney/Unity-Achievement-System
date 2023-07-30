@@ -11,6 +11,6 @@ EXTRA
 - Saving and loading achievement.
 - When achievement is completed the user can claim the reward and achievement will reset.
 
-  FUTURE
+FUTURE
 - Add a timer to achievement. Expired after a certain time.
   
