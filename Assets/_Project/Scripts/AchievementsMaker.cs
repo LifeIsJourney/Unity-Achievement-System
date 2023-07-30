@@ -22,10 +22,11 @@ namespace AchievementSystem
        
         public void LoadOrMakeAchievements()
         {
-            achievementManager.LoadAchievements();
+            AchievementUtility.LoadAchievements(AchievementManager.PrefsKey,out achievementManager.savedAchievements);
             //achievementManager.SaveAchievements(); // Call SaveAchievements here whenever needed
 
-            List<Achievement> loadedAchievements = achievementManager.GetLoadedAchievements(achievementDatabase);
+            List<Achievement> loadedAchievements = AchievementUtility.GetLoadedAchievements(achievementDatabase,
+                achievementManager.savedAchievements);
             List<string> achievementValues = new List<string>();
             List<AchievementID> achievementIDs = new List<AchievementID>();
 
@@ -43,16 +44,18 @@ namespace AchievementSystem
 
                 achievementValues = CreateNewAchievements(achievementIDs);
 
-                SaveNewAchievements(achievementIDs, achievementValues);
+                AchievementUtility.SaveNewAchievements(AchievementManager.PrefsKey,achievementIDs, achievementValues,
+                   out achievementManager.savedAchievements);
 
-                loadedAchievements = achievementManager.GetLoadedAchievements(achievementDatabase);
+                loadedAchievements = AchievementUtility.GetLoadedAchievements(achievementDatabase,
+                    achievementManager.savedAchievements);
             }
 
             // ShowAchievements(achievementIDs, achievementValues);
             achievementManager.currentAchievements.achievements = loadedAchievements;
         }
 
-        private List<string> CreateNewAchievements(List<AchievementID> randomCombinations)
+        public List<string> CreateNewAchievements(List<AchievementID> randomCombinations)
         {
             List<string> achievementValues = new List<string>();
 
@@ -103,38 +106,20 @@ namespace AchievementSystem
             return ParseUserValue(userLevel, changingValue);
         }
 
-        private void SaveNewAchievements(List<AchievementID> SelectedAchievementIds, List<string> achievementValues)
-        {
-            achievementManager.savedAchievements = new SavedAchievements()
-            {
-                achievements = new AchievementWithValue[SelectedAchievementIds.Count]
-            };
-
-            for (int i = 0; i < SelectedAchievementIds.Count; i++)
-            {
-                achievementManager.savedAchievements.achievements[i] = new AchievementWithValue()
-                {
-                    achievementID = SelectedAchievementIds[i],
-                    userValue = achievementValues[i]
-                };
-            }
-
-            achievementManager.SaveAchievements();
-        }
-
-        public void SaveNewAchievements()
+        public void SaveNewAchievements(string key,List<Achievement> achievements,out SavedAchievements savedAchievements)
         {
             List<AchievementID> SelectedAchievementIds = new List<AchievementID>();
             List< string > achievementValues = new List<string>();
 
-            foreach (var achievement in achievementManager.currentAchievements.achievements)
+            foreach (var achievement in achievements)
             {
                 AchievementID achievementId = (AchievementID)Enum.Parse(typeof(AchievementID), achievement.id);
                 SelectedAchievementIds.Add(achievementId);
                 achievementValues.Add(ParseUserValue(achievement));
                
             }
-            SaveNewAchievements(SelectedAchievementIds, achievementValues);
+            AchievementUtility.SaveNewAchievements(key,SelectedAchievementIds, achievementValues,
+               out savedAchievements);
         }
 
         char splitChar = '@';

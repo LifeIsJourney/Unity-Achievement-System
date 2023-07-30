@@ -12,17 +12,17 @@ namespace AchievementSystem
     public class AchievementManager : MonoBehaviour
     {
 
-        public AchievementDatabase database;
+        [SerializeField] AchievementDatabase database;
 
-        public AchievementNotificationController achievementNotificationController;
+        [SerializeField] AchievementNotificationController achievementNotificationController;
 
-        public AchievementDropdownController achievementDropdownController;
+        [SerializeField] AchievementDropdownController achievementDropdownController;
 
         [SerializeField] AchievementsMaker achievementsMaker;
-
-        public GameObject achievementItemPrefab;
-        public Transform scrollViewContent;
-
+        [SerializeField] DailyGoals dailyGoals;
+        [SerializeField] Transform achievementItemParentTransform;
+        [SerializeField] GameObject achievementItemPrefab;
+      
         public AchievementID achievementToShow;
 
         public const int UnlockLevel = 17;
@@ -30,7 +30,7 @@ namespace AchievementSystem
         public const int MaxConcurrentAchievementCount = 5;
         public const char achievementDefaultCharacter = '!';
 
-        public int userStage = 20;
+        public int levelCompleted = 20;
 
         //later convert this into property
         //[HideInInspector]
@@ -47,13 +47,15 @@ namespace AchievementSystem
             achievementsMaker.LoadOrMakeAchievements();
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;
             achievementItems = new List<AchievementItemController>();
-            LoadAchievementsTable();
+            dailyGoals.InitializeDailyGoals(database);
+            achievementItems = LoadAchievementsTable(achievementItems,currentAchievements.achievements,
+                achievementItemParentTransform);
             AddOnAchievementComplete();
         }
 
         private void OnDisable()
         {
-           achievementsMaker.SaveNewAchievements();
+           achievementsMaker.SaveNewAchievements(PrefsKey,currentAchievements.achievements,out savedAchievements);
         }
 
         /// <summary>
@@ -66,7 +68,9 @@ namespace AchievementSystem
             {
                 if (achievement.id == achievementId) achievement.HitByUser();
             }
-            RefreshAchievement();
+            RefreshAchievement(achievementItems);
+
+            dailyGoals.CheckIfDailyGoalAchievementHit(achievementId);
         }
 
 
@@ -80,7 +84,8 @@ namespace AchievementSystem
             PlayerPrefs.DeleteKey(PrefsKey);
             achievementsMaker.LoadOrMakeAchievements();
             achievementDropdownController.onValueChanged -= HandleAchievementDropdownValueChanged;
-            LoadAchievementsTable();
+            achievementItems = LoadAchievementsTable(achievementItems, currentAchievements.achievements
+                , achievementItemParentTransform);
         }
 
         private void HandleAchievementDropdownValueChanged(AchievementID achievement)
@@ -89,7 +94,9 @@ namespace AchievementSystem
         }
 
         [ContextMenu("LoadAchievementsTable()")]
-        private void LoadAchievementsTable()
+        public List<AchievementItemController> LoadAchievementsTable(
+            List<AchievementItemController> achievementItems, List<Achievement> achievements,
+            Transform parentTransform)
         {
             if (achievementItems.Count != 0)
             {
@@ -99,9 +106,9 @@ namespace AchievementSystem
                 }
                 achievementItems.Clear();
             }
-            foreach (Achievement achievement in currentAchievements.achievements)
+            foreach (Achievement achievement in achievements)
             {
-                GameObject obj = Instantiate(achievementItemPrefab, scrollViewContent);
+                GameObject obj = Instantiate(achievementItemPrefab, parentTransform);
                 AchievementItemController item = obj.GetComponent<AchievementItemController>();
                 bool unlocked = PlayerPrefs.GetInt(achievement.id, 0) == 1;
                 item.unlocked = unlocked;
@@ -109,9 +116,10 @@ namespace AchievementSystem
                 item.RefreshView();
                 achievementItems.Add(item);
             }
+            return achievementItems;
         }
 
-        void RefreshAchievement()
+        public void RefreshAchievement(List<AchievementItemController> achievementItems)
         {
             foreach (var achievement in achievementItems)
             {
@@ -131,6 +139,7 @@ namespace AchievementSystem
         void AchievementCompleted(string achievementId)
         {
             UnlockAchievement(achievementId);
+            dailyGoals.AchievementCompleted(achievementId);
         }
 
         public void UnlockAchievement()
@@ -144,7 +153,6 @@ namespace AchievementSystem
         }
         void UnlockAchievement(string achievement)
         {
-
             AchievementItemController item = null;
 
             foreach (var achievementItem in achievementItems)
@@ -177,71 +185,7 @@ namespace AchievementSystem
             }
         }
 
-        public void LoadAchievements()
-        {
-            string achievementString = PlayerPrefs.GetString(PrefsKey, string.Empty);
-            savedAchievements = JsonUtility.FromJson<SavedAchievements>(achievementString);
-        }
-
-        public void SaveAchievements()
-        {
-            string achievementString = JsonUtility.ToJson(savedAchievements);
-            PlayerPrefs.SetString(PrefsKey, achievementString);
-        }
-
-        public List<Achievement> GetLoadedAchievements(AchievementDatabase achievementDatabase)
-        {
-            List<Achievement> loadedAchievements = new List<Achievement>();
-
-            if (savedAchievements != null)
-            {
-                foreach (var achievement in savedAchievements.achievements)
-                {
-
-                    int userLevel;
-                    int[] changingValue;
-                    char charValue;
-                    int progress;
-                    GetDataFromSavedValue(achievement.userValue, out userLevel, 
-                        out changingValue, out charValue,out progress);
-
-                    Achievement loadedAchievement = 
-                        AchievementFactory.CreateAchievement(achievement.achievementID, achievementDatabase,userLevel,
-                        changingValue,charValue);
-                    
-                    loadedAchievement.userLevel = userLevel;
-                    loadedAchievement.changingValue = changingValue;
-                    loadedAchievement.charValue = charValue;
-                    loadedAchievement.progress = progress;
-
-                    loadedAchievements.Add(loadedAchievement);
-
-                }
-            }
-
-            return loadedAchievements;
-        }
-
-        private void GetDataFromSavedValue(string savedValue, out int userLevel,
-            out int[] changingValue, out char charValue,out int progress)
-        {
-            string[] split = savedValue.Split('@');
-
-            int.TryParse(split[0], out userLevel);
-
-            string[] _changingValueSplit = split[1].Split(',');
-            changingValue = new int[_changingValueSplit.Length];
-
-            for (int i = 0; i < changingValue.Length; i++)
-            {
-                int.TryParse(_changingValueSplit[i], out changingValue[i]);
-            }
-
-            char.TryParse(split[2], out charValue);
-
-            int.TryParse(split[3], out progress);
-        }
-
+     
         //Debug
         public void D_ShowNotificaion()
         {
