@@ -53,6 +53,7 @@ namespace AchievementSystem
             Achievement achievement1 = new Achievement(tmp.id, tmp.title, tmp.description,
                 userStage, changingValue);
 
+            achievement1.initialValue = tmp.initialValue;
             achievement1.description = string.Format(achievement1.description, achievement1.changingValue[0]);
 
             return achievement1;
@@ -65,6 +66,8 @@ namespace AchievementSystem
 
             Achievement achievement1 = new Achievement(tmp.id, tmp.title, tmp.description, userStage,
                changingValue, charValue);
+
+            achievement1.initialValue = tmp.initialValue;
 
             if (achievement == AchievementID.PlayWord)
                 achievement1.title = string.Format(tmp.title, achievement1.charValue);

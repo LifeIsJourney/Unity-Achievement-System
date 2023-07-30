@@ -6,11 +6,8 @@ using UnityEngine;
 
 namespace AchievementSystem
 {
-    /// <summary>
-    /// Base class contain achievement data
-    /// </summary>
     [System.Serializable]
-    public class Achievement
+    public class AchievementBase
     {
         public string id;
         public string title;
@@ -18,14 +15,20 @@ namespace AchievementSystem
         public int initialValue = 1;
         public string example;
 
+    }
+    /// <summary>
+    /// Base class contain achievement data
+    /// </summary>
+    [System.Serializable]
+    public class Achievement : AchievementBase
+    {
         //ChangingValue value
-        [NonSerialized]
-        public int userLevel = 1;
-        [NonSerialized]
-        public int[] changingValue;
-        [NonSerialized]
-        public char charValue;
+        public int userLevel { get; set; }
+        public int[] changingValue { get; set; }
+        public char charValue { get; set; }
+        public int progress { get; set; }
 
+        public Action<string> onAchievementCompleted;
         public Achievement(string id, string title, string description,
             int userLevel, int[] changingValue, char charValue)
         {
@@ -35,6 +38,7 @@ namespace AchievementSystem
             this.userLevel = userLevel;
             this.changingValue = changingValue;
             this.charValue = charValue;
+            this.progress = 0;
         }
 
         public Achievement(string id, string title, string description,
@@ -45,7 +49,62 @@ namespace AchievementSystem
             this.description = description;
             this.userLevel = userLevel;
             this.changingValue = changingValue;
+            this.progress = 0;
+        }
+
+        public float GetProgressPercentage()
+        {
+            // Calculate the progress percentage based on the current user value and the target value (changingValue[0])
+            if (changingValue.Length > 0)
+            {
+                float currentValue = progress;
+                int targetValue = changingValue[0];
+                return (float)currentValue / (float)targetValue;
+            }
+            return 0f;
+        }
+
+        public bool IsReadyToClaim()
+        {
+            // Check if the achievement is ready to be claimed
+            if (changingValue.Length > 0)
+            {
+                float currentValue = progress; 
+                int targetValue = changingValue[0];
+                return currentValue >= targetValue;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Call this when play progresses in game
+        /// </summary>
+        public void HitByUser()
+        {
+            int targetValue = changingValue[0];
+
+            if (progress <= targetValue) progress++;
+
+            if (IsReadyToClaim()) onAchievementCompleted?.Invoke(id);
+        }
+
+        public void IncrementUserLevelNreset()
+        {
+            userLevel++;
+            if(changingValue.Length == 1)
+                changingValue[0] = initialValue * userLevel;
+            if(changingValue.Length == 2)
+                changingValue[1] = AchievementUtility.GetRandomWordCount();
+            if (charValue != AchievementManager.achievementDefaultCharacter)
+                charValue = AchievementUtility.GetCharacter();
+
+            ResetAchievement();
+        }
+
+        void ResetAchievement()
+        {
+            progress = 0;
         }
     }
- 
 }
+ 

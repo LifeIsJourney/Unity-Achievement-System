@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace AchievementSystem
 {
@@ -26,7 +27,9 @@ namespace AchievementSystem
 
         public const int UnlockLevel = 17;
         public const string PrefsKey = "AchievementsData";
-        public const int MaxConcurrentAchievementCount = 3;
+        public const int MaxConcurrentAchievementCount = 5;
+        public const char achievementDefaultCharacter = '!';
+
         public int userStage = 20;
 
         //later convert this into property
@@ -37,22 +40,39 @@ namespace AchievementSystem
         //[NonSerialized]
         public SavedAchievements savedAchievements;
 
-        [SerializeField]
-        [HideInInspector]
         private List<AchievementItemController> achievementItems;
 
         private void Start()
         {
             achievementsMaker.LoadOrMakeAchievements();
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;
+            achievementItems = new List<AchievementItemController>();
             LoadAchievementsTable();
+            AddOnAchievementComplete();
         }
 
-        public void ShowNotification()
+        private void OnDisable()
         {
-            Achievement achievement = 
-                AchievementUtility.GetAchievementFromEnum(achievementToShow,currentAchievements);
-            achievementNotificationController.ShowNotification(achievement);
+           achievementsMaker.SaveNewAchievements();
+        }
+
+        /// <summary>
+        /// Call this from other class when achievent event hit by user
+        /// </summary>
+        /// <param name="achievementId"></param>
+        public void AchievementHit(string achievementId)
+        {
+            foreach (var achievement in currentAchievements.achievements)
+            {
+                if (achievement.id == achievementId) achievement.HitByUser();
+            }
+            RefreshAchievement();
+        }
+
+
+        public void ShowNotification(Achievement achievement)
+        {
+           achievementNotificationController.ShowNotification(achievement);
         }
 
         public void Restart()
@@ -71,11 +91,14 @@ namespace AchievementSystem
         [ContextMenu("LoadAchievementsTable()")]
         private void LoadAchievementsTable()
         {
-            foreach (AchievementItemController item in achievementItems)
+            if (achievementItems.Count != 0)
             {
-                DestroyImmediate(item.gameObject);
+                foreach (AchievementItemController item in achievementItems)
+                {
+                    DestroyImmediate(item.gameObject);
+                }
+                achievementItems.Clear();
             }
-            achievementItems.Clear();
             foreach (Achievement achievement in currentAchievements.achievements)
             {
                 GameObject obj = Instantiate(achievementItemPrefab, scrollViewContent);
@@ -88,6 +111,28 @@ namespace AchievementSystem
             }
         }
 
+        void RefreshAchievement()
+        {
+            foreach (var achievement in achievementItems)
+            {
+                achievement.RefreshView();
+            }
+        }
+
+        void AddOnAchievementComplete()
+        {
+            foreach (var achievement in currentAchievements.achievements)
+            {
+                achievement.onAchievementCompleted -= AchievementCompleted;
+                achievement.onAchievementCompleted += AchievementCompleted;
+            }
+        }
+
+        void AchievementCompleted(string achievementId)
+        {
+            UnlockAchievement(achievementId);
+        }
+
         public void UnlockAchievement()
         {
             UnlockAchievement(achievementToShow);
@@ -95,21 +140,25 @@ namespace AchievementSystem
 
         public void UnlockAchievement(AchievementID achievement)
         {
+            UnlockAchievement(achievement.ToString());
+        }
+        void UnlockAchievement(string achievement)
+        {
 
             AchievementItemController item = null;
 
             foreach (var achievementItem in achievementItems)
             {
-                if (achievementItem.achievement.id == achievement.ToString())
+                if (achievementItem.achievement.id == achievement)
                 { item = achievementItem; break; }
             }
-            
-            if(item == null) { Debug.LogError("Unable to find returning...");return; }
+
+            if (item == null) { Debug.LogError("Unable to find returning..."); return; }
             //get int value and time from saved value
             if (item.unlocked)
                 return;
 
-            ShowNotification();
+            ShowNotification(item.achievement);
             PlayerPrefs.SetInt(item.achievement.id, 1);
             item.unlocked = true;
             item.RefreshView();
@@ -152,7 +201,9 @@ namespace AchievementSystem
                     int userLevel;
                     int[] changingValue;
                     char charValue;
-                    GetDataFromSavedValue(achievement.userValue, out userLevel, out changingValue, out charValue);
+                    int progress;
+                    GetDataFromSavedValue(achievement.userValue, out userLevel, 
+                        out changingValue, out charValue,out progress);
 
                     Achievement loadedAchievement = 
                         AchievementFactory.CreateAchievement(achievement.achievementID, achievementDatabase,userLevel,
@@ -161,8 +212,8 @@ namespace AchievementSystem
                     loadedAchievement.userLevel = userLevel;
                     loadedAchievement.changingValue = changingValue;
                     loadedAchievement.charValue = charValue;
+                    loadedAchievement.progress = progress;
 
-                    
                     loadedAchievements.Add(loadedAchievement);
 
                 }
@@ -171,7 +222,8 @@ namespace AchievementSystem
             return loadedAchievements;
         }
 
-        private void GetDataFromSavedValue(string savedValue, out int userLevel, out int[] changingValue, out char charValue)
+        private void GetDataFromSavedValue(string savedValue, out int userLevel,
+            out int[] changingValue, out char charValue,out int progress)
         {
             string[] split = savedValue.Split('@');
 
@@ -186,7 +238,14 @@ namespace AchievementSystem
             }
 
             char.TryParse(split[2], out charValue);
+
+            int.TryParse(split[3], out progress);
         }
 
+        //Debug
+        public void D_ShowNotificaion()
+        {
+            ShowNotification(currentAchievements.achievements[0]);
+        }
     }
 }
