@@ -21,7 +21,7 @@ namespace AchievementSystem
         [SerializeField] AchievementsMaker achievementsMaker;
         [SerializeField] DailyGoals dailyGoals;
         [SerializeField] Transform achievementItemParentTransform;
-        [SerializeField] GameObject achievementItemPrefab;
+        [SerializeField] AchievementItemController achievementItemPrefab;
       
         public AchievementID achievementToShow;
 
@@ -48,8 +48,8 @@ namespace AchievementSystem
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;
             achievementItems = new List<AchievementItemController>();
             dailyGoals.InitializeDailyGoals(database);
-            achievementItems = LoadAchievementsTable(achievementItems,currentAchievements.achievements,
-                achievementItemParentTransform);
+            achievementItems = LoadAchievementsTable(achievementItemPrefab,achievementItems,
+                currentAchievements.achievements, achievementItemParentTransform);
             AddOnAchievementComplete();
         }
 
@@ -84,8 +84,8 @@ namespace AchievementSystem
             PlayerPrefs.DeleteKey(PrefsKey);
             achievementsMaker.LoadOrMakeAchievements();
             achievementDropdownController.onValueChanged -= HandleAchievementDropdownValueChanged;
-            achievementItems = LoadAchievementsTable(achievementItems, currentAchievements.achievements
-                , achievementItemParentTransform);
+            achievementItems = LoadAchievementsTable(achievementItemPrefab,achievementItems, 
+                currentAchievements.achievements, achievementItemParentTransform);
         }
 
         private void HandleAchievementDropdownValueChanged(AchievementID achievement)
@@ -94,7 +94,7 @@ namespace AchievementSystem
         }
 
         [ContextMenu("LoadAchievementsTable()")]
-        public List<AchievementItemController> LoadAchievementsTable(
+        public List<AchievementItemController> LoadAchievementsTable(AchievementItemController prefab,
             List<AchievementItemController> achievementItems, List<Achievement> achievements,
             Transform parentTransform)
         {
@@ -108,7 +108,7 @@ namespace AchievementSystem
             }
             foreach (Achievement achievement in achievements)
             {
-                GameObject obj = Instantiate(achievementItemPrefab, parentTransform);
+                GameObject obj = Instantiate(prefab.gameObject, parentTransform);
                 AchievementItemController item = obj.GetComponent<AchievementItemController>();
                 bool unlocked = PlayerPrefs.GetInt(achievement.id, 0) == 1;
                 item.unlocked = unlocked;

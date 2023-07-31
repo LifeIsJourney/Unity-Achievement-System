@@ -2467,7 +2467,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1064697166
 MonoBehaviour:
@@ -2489,7 +2489,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: DailyTask
+  m_text: Achievements
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4333,7 +4333,7 @@ MonoBehaviour:
   achievementsMaker: {fileID: 2039891456}
   dailyGoals: {fileID: 2039891457}
   achievementItemParentTransform: {fileID: 1163962405}
-  achievementItemPrefab: {fileID: 2467109185312260463, guid: 7bbd93860a36b0c4fa575a6a16024289,
+  achievementItemPrefab: {fileID: 2567540708684703887, guid: 7bbd93860a36b0c4fa575a6a16024289,
     type: 3}
   achievementToShow: 0
   levelCompleted: 20
@@ -4402,6 +4402,8 @@ MonoBehaviour:
   achievementManager: {fileID: 2039891453}
   achievementMaker: {fileID: 2039891456}
   achievementItemParentTransform: {fileID: 2034853669}
+  achievementItemPrefab: {fileID: 2567540708684703887, guid: 925b42f56ab0b334f931a23a6110281e,
+    type: 3}
 --- !u!1 &2042566099
 GameObject:
   m_ObjectHideFlags: 0

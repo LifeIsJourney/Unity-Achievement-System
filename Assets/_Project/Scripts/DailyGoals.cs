@@ -30,8 +30,10 @@ namespace AchievementSystem
         [SerializeField] AchievementManager achievementManager;
         [SerializeField] AchievementsMaker achievementMaker;
         [SerializeField] Transform achievementItemParentTransform;
+        [SerializeField] AchievementItemController achievementItemPrefab;
 
         private const string PrefsKey = "DailyGoalData";
+        private const string ResetTimePrefsKey = "DailyGoalResetTime";
         private const int achievementMaxCount = 3;
 
         DateTime lastResetTime; // The last time the daily goals were reset
@@ -43,21 +45,39 @@ namespace AchievementSystem
             achievementItems = new List<AchievementItemController>();
             dailyGoalAchievements = new CurrentAchievements();
             dailyGoalAchievements.achievements = new List<Achievement>();
+            GetLastResetTime();
+
+            // Load or create new daily goals
+            LoadOrCreateDailyGoals(achievementDatabase);
+
             // Check if daily goals need to be reset
-            if (DateTime.Now.Subtract(lastResetTime).TotalHours >= 24 
-                && dailyGoalAchievements != null && dailyGoalAchievements.achievements.Count != 0)
+            if (DateTime.Now.Subtract(lastResetTime).TotalHours >= 24)
             {
                 // Reset daily goals
                 ResetDailyGoals();
             }
-            else 
-            {
-                // Load or create new daily goals
-                LoadOrCreateDailyGoals(achievementDatabase);
-            }
-           //save and load values using parse data same as other achievements
-            achievementItems = achievementManager.LoadAchievementsTable(achievementItems,
+
+            //save and load values using parse data same as other achievements
+            achievementItems = achievementManager.LoadAchievementsTable(achievementItemPrefab, achievementItems,
                 dailyGoalAchievements.achievements, achievementItemParentTransform);
+
+
+        }
+
+        private void GetLastResetTime()
+        {
+            if (!PlayerPrefs.HasKey(ResetTimePrefsKey))
+            {
+                UpdateLastResetTime();
+            }
+            else
+                DateTime.TryParse(PlayerPrefs.GetString(ResetTimePrefsKey), out lastResetTime);
+        }
+
+        private void UpdateLastResetTime()
+        {
+            lastResetTime = DateTime.Now;
+            PlayerPrefs.SetString(ResetTimePrefsKey, lastResetTime.ToString());
         }
 
         public void CheckIfDailyGoalAchievementHit(string achievementId)
@@ -154,8 +174,7 @@ namespace AchievementSystem
                 dailyGoal.progress = 0;
             }
 
-            // Update the last reset time
-            lastResetTime = DateTime.Now;
+            UpdateLastResetTime();
 
             // Save the updated daily goal data to PlayerPrefs
             SaveDailyGoals();
