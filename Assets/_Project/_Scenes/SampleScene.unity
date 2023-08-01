@@ -916,7 +916,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 28}
+  m_SizeDelta: {x: 0, y: 38}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &456650566
 GameObject:
@@ -955,7 +955,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 20}
+  m_SizeDelta: {x: 0, y: 35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &456650568
 MonoBehaviour:
@@ -1814,7 +1814,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1669290322}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.2
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2385,7 +2385,7 @@ MonoBehaviour:
       - m_Target: {fileID: 2039891455}
         m_TargetAssemblyTypeName: AchievementSystem.Tester, Assembly-CSharp
         m_MethodName: AchievementProgressed
-        m_Mode: 3
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -3517,7 +3517,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 2}
-  m_SizeDelta: {x: 0, y: 150}
+  m_SizeDelta: {x: 0, y: 296.5317}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1534972503
 MonoBehaviour:
@@ -3857,7 +3857,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -18, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1639767314
 MonoBehaviour:
@@ -4018,7 +4018,7 @@ RectTransform:
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0.2}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4308,6 +4308,7 @@ GameObject:
   - component: {fileID: 2039891455}
   - component: {fileID: 2039891456}
   - component: {fileID: 2039891457}
+  - component: {fileID: 2039891458}
   m_Layer: 0
   m_Name: '[Managers]'
   m_TagString: Untagged
@@ -4332,15 +4333,9 @@ MonoBehaviour:
   achievementDropdownController: {fileID: 1505944098}
   achievementsMaker: {fileID: 2039891456}
   dailyGoals: {fileID: 2039891457}
-  achievementItemParentTransform: {fileID: 1163962405}
-  achievementItemPrefab: {fileID: 2567540708684703887, guid: 7bbd93860a36b0c4fa575a6a16024289,
-    type: 3}
+  longTermGoals: {fileID: 2039891458}
   achievementToShow: 0
   levelCompleted: 20
-  currentAchievements:
-    achievements: []
-  savedAchievements:
-    achievements: []
 --- !u!4 &2039891454
 Transform:
   m_ObjectHideFlags: 0
@@ -4368,6 +4363,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   achievementManager: {fileID: 2039891453}
+  achievementID: 0
+  achievementDropdown: {fileID: 0}
 --- !u!114 &2039891456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4395,7 +4392,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f29398b1e76d3744a3e326cd755685e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dailyGoalAchievements:
+  currentAchievements:
     achievements: []
   savedAchievements:
     achievements: []
@@ -4404,6 +4401,29 @@ MonoBehaviour:
   achievementItemParentTransform: {fileID: 2034853669}
   achievementItemPrefab: {fileID: 2567540708684703887, guid: 925b42f56ab0b334f931a23a6110281e,
     type: 3}
+  achievementItems: []
+--- !u!114 &2039891458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2039891452}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fd96196c4d9fde4292f4712ffc5561b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  achievementsMaker: {fileID: 2039891456}
+  achievementItemParentTransform: {fileID: 1163962405}
+  achievementItemPrefab: {fileID: 2567540708684703887, guid: 7bbd93860a36b0c4fa575a6a16024289,
+    type: 3}
+  achievementManager: {fileID: 2039891453}
+  currentAchievements:
+    achievements: []
+  savedAchievements:
+    achievements: []
+  achievementItems: []
 --- !u!1 &2042566099
 GameObject:
   m_ObjectHideFlags: 0
@@ -4465,7 +4485,7 @@ MonoBehaviour:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
     m_FontStyle: 0
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 10
     m_MaxSize: 40
     m_Alignment: 3

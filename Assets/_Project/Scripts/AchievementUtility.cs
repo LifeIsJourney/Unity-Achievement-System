@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Random = UnityEngine.Random;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
@@ -44,39 +45,10 @@ namespace AchievementSystem
             return Random.Range(4, 6);
         }
 
-         public static void SaveNewAchievements(string PrefsKey, List<AchievementID> SelectedAchievementIds, 
-             List<string> achievementValues,out SavedAchievements savedAchievements)
-        {
-            savedAchievements = new SavedAchievements()
-            {
-                achievements = new AchievementWithValue[SelectedAchievementIds.Count]
-            };
-
-            for (int i = 0; i < SelectedAchievementIds.Count; i++)
-            {
-                savedAchievements.achievements[i] = new AchievementWithValue()
-                {
-                    achievementID = SelectedAchievementIds[i],
-                    userValue = achievementValues[i]
-                };
-            }
-
-            SaveAchievements(PrefsKey,savedAchievements);
-        }
-        public static void LoadAchievements(string PrefsKey,out SavedAchievements savedAchievements)
-        {
-            string achievementString = PlayerPrefs.GetString(PrefsKey, string.Empty);
-            savedAchievements = JsonUtility.FromJson<SavedAchievements>(achievementString);
-        }
-
-        public static void SaveAchievements(string PrefsKey, SavedAchievements savedAchievements)
-        {
-            string achievementString = JsonUtility.ToJson(savedAchievements);
-            PlayerPrefs.SetString(PrefsKey, achievementString);
-        }
+        
 
         public static List<Achievement> GetLoadedAchievements(AchievementDatabase achievementDatabase,
-            SavedAchievements savedAchievements)
+            SavedAchievements savedAchievements, System.Action<string> onAchievementCompleted)
         {
             List<Achievement> loadedAchievements = new List<Achievement>();
 
@@ -100,6 +72,7 @@ namespace AchievementSystem
                     loadedAchievement.changingValue = changingValue;
                     loadedAchievement.charValue = charValue;
                     loadedAchievement.progress = progress;
+                    loadedAchievement.onAchievementCompleted = onAchievementCompleted;
 
                     loadedAchievements.Add(loadedAchievement);
 
@@ -128,6 +101,44 @@ namespace AchievementSystem
 
             int.TryParse(split[3], out progress);
         }
+
+
+        static char splitChar = '@';
+        public static string ParseUserValue(Achievement achievement)
+        {
+            return ParseUserValue(achievement.userLevel, achievement.changingValue,
+                achievement.charValue, achievement.progress);
+        }
+        public static string ParseUserValue(int userLevel, int[] changingValue, char charValue, int progress = 0)
+        {
+            string userValue = string.Empty;
+
+            userValue += userLevel;
+            userValue += splitChar;
+            bool removeFirstComma = true;
+            foreach (var intValue in changingValue)
+            {
+                if (removeFirstComma)
+                {
+                    removeFirstComma = false;
+                    userValue += intValue.ToString();
+                }
+                else
+                    userValue += ',' + intValue.ToString();
+            }
+            userValue += splitChar;
+            userValue += charValue;
+            userValue += splitChar;
+            userValue += progress;
+
+            return userValue;
+        }
+
+        public static string ParseUserValue(int userLevel, int[] changingValue)
+        {
+            return ParseUserValue(userLevel, changingValue, AchievementManager.achievementDefaultCharacter, 0);
+        }
+
 
     }
 }

@@ -1,24 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 namespace AchievementSystem
 {
     public class Tester : MonoBehaviour
     {
         public AchievementManager achievementManager;
+        public AchievementID achievementID;
+        public Dropdown achievementDropdown;
 
         public void MilestoneReached()
         {
-            achievementManager.UnlockAchievement(AchievementID.BeatLevel);
+            if (achievementDropdown != null)
+            { achievementManager.D_UnlockAchievement((AchievementID)achievementDropdown.value); }
+           else achievementManager.D_UnlockAchievement(achievementID);
         }
 
-        public void AchievementProgressed(int index)
+        public void AchievementProgressed()
         {
-            achievementManager.AchievementHit(achievementManager.currentAchievements.achievements[index].id);
-            Debug.Log("Name :" + achievementManager.currentAchievements.achievements[index].id +
-                "Progress: " + achievementManager.currentAchievements.achievements[index].GetProgressPercentage());
+            if(achievementDropdown != null)
+            { achievementManager.AchievementHit((AchievementID)achievementDropdown.value); }
+            else achievementManager.AchievementHit(achievementID);
+            Debug.Log("Name :" + achievementID);
         }
 
     }

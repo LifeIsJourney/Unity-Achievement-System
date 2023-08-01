@@ -20,13 +20,11 @@ namespace AchievementSystem
 
         [SerializeField] AchievementsMaker achievementsMaker;
         [SerializeField] DailyGoals dailyGoals;
-        [SerializeField] Transform achievementItemParentTransform;
-        [SerializeField] AchievementItemController achievementItemPrefab;
-      
+        [SerializeField] LongTermGoals longTermGoals;
+        
         public AchievementID achievementToShow;
 
         public const int UnlockLevel = 17;
-        public const string PrefsKey = "AchievementsData";
         public const int MaxConcurrentAchievementCount = 5;
         public const char achievementDefaultCharacter = '!';
 
@@ -35,42 +33,34 @@ namespace AchievementSystem
         //later convert this into property
         //[HideInInspector]
         //[NonSerialized]
-        public CurrentAchievements currentAchievements;
-        //[HideInInspector]
-        //[NonSerialized]
-        public SavedAchievements savedAchievements;
-
-        private List<AchievementItemController> achievementItems;
+      
 
         private void Start()
         {
-            achievementsMaker.LoadOrMakeAchievements();
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;
-            achievementItems = new List<AchievementItemController>();
             dailyGoals.InitializeDailyGoals(database);
-            achievementItems = LoadAchievementsTable(achievementItemPrefab,achievementItems,
-                currentAchievements.achievements, achievementItemParentTransform);
-            AddOnAchievementComplete();
+            longTermGoals.Initialize(database);
         }
 
         private void OnDisable()
         {
-           achievementsMaker.SaveNewAchievements(PrefsKey,currentAchievements.achievements,out savedAchievements);
+           longTermGoals.SaveAchievements();
+            dailyGoals.SaveAchievements();
         }
 
         /// <summary>
         /// Call this from other class when achievent event hit by user
         /// </summary>
         /// <param name="achievementId"></param>
-        public void AchievementHit(string achievementId)
+        public void AchievementHit(AchievementID achievementId)
         {
-            foreach (var achievement in currentAchievements.achievements)
+            foreach (var achievement in longTermGoals.currentAchievements.achievements)
             {
-                if (achievement.id == achievementId) achievement.HitByUser();
+                if (achievement.id == achievementId.ToString()) achievement.HitByUser();
             }
-            RefreshAchievement(achievementItems);
+            RefreshAchievement(longTermGoals.achievementItems);
 
-            dailyGoals.CheckIfDailyGoalAchievementHit(achievementId);
+            dailyGoals.CheckIfDailyGoalAchievementHit(achievementId.ToString());
         }
 
 
@@ -81,11 +71,10 @@ namespace AchievementSystem
 
         public void Restart()
         {
-            PlayerPrefs.DeleteKey(PrefsKey);
-            achievementsMaker.LoadOrMakeAchievements();
-            achievementDropdownController.onValueChanged -= HandleAchievementDropdownValueChanged;
-            achievementItems = LoadAchievementsTable(achievementItemPrefab,achievementItems, 
-                currentAchievements.achievements, achievementItemParentTransform);
+            dailyGoals.Restart();
+            longTermGoals.Restart();
+           achievementDropdownController.onValueChanged -= HandleAchievementDropdownValueChanged;
+           
         }
 
         private void HandleAchievementDropdownValueChanged(AchievementID achievement)
@@ -127,31 +116,8 @@ namespace AchievementSystem
             }
         }
 
-        void AddOnAchievementComplete()
-        {
-            foreach (var achievement in currentAchievements.achievements)
-            {
-                achievement.onAchievementCompleted -= AchievementCompleted;
-                achievement.onAchievementCompleted += AchievementCompleted;
-            }
-        }
-
-        void AchievementCompleted(string achievementId)
-        {
-            UnlockAchievement(achievementId);
-            dailyGoals.AchievementCompleted(achievementId);
-        }
-
-        public void UnlockAchievement()
-        {
-            UnlockAchievement(achievementToShow);
-        }
-
-        public void UnlockAchievement(AchievementID achievement)
-        {
-            UnlockAchievement(achievement.ToString());
-        }
-        void UnlockAchievement(string achievement)
+      
+        public void UnlockAchievement(string achievement,List<AchievementItemController> achievementItems)
         {
             AchievementItemController item = null;
 
@@ -167,7 +133,6 @@ namespace AchievementSystem
                 return;
 
             ShowNotification(item.achievement);
-            PlayerPrefs.SetInt(item.achievement.id, 1);
             item.unlocked = true;
             item.RefreshView();
         }
@@ -178,7 +143,7 @@ namespace AchievementSystem
             {
                 PlayerPrefs.DeleteKey(achievement.id);
             }
-            foreach (AchievementItemController item in achievementItems)
+            foreach (AchievementItemController item in longTermGoals.achievementItems)
             {
                 item.unlocked = false;
                 item.RefreshView();
@@ -189,7 +154,22 @@ namespace AchievementSystem
         //Debug
         public void D_ShowNotificaion()
         {
-            ShowNotification(currentAchievements.achievements[0]);
+            ShowNotification(longTermGoals.currentAchievements.achievements[0]);
+        }
+
+        public void D_UnlockAchievement()
+        {
+            D_UnlockAchievement(achievementToShow);
+        }
+
+        public void D_UnlockAchievement(AchievementID achievement)
+        {
+            D_AchievementUnlocked(achievement.ToString());
+        }
+        public void D_AchievementUnlocked(string achievement)
+        {
+            UnlockAchievement(achievement.ToString(), dailyGoals.achievementItems);
+            UnlockAchievement(achievement.ToString(), longTermGoals.achievementItems);
         }
     }
 }

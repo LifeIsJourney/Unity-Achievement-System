@@ -83,7 +83,7 @@ namespace AchievementSystem
         {
             int targetValue = changingValue[0];
 
-            if (progress <= targetValue) progress++;
+            if (progress <= targetValue - 1) progress++;
 
             if (IsReadyToClaim()) onAchievementCompleted?.Invoke(id);
         }
