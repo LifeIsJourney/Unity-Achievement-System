@@ -74,6 +74,8 @@ namespace AchievementSystem
                     loadedAchievement.progress = progress;
                     loadedAchievement.onAchievementCompleted = onAchievementCompleted;
 
+                    if (progress >= changingValue[0] - 1) loadedAchievement.isCompleted = true;
+
                     loadedAchievements.Add(loadedAchievement);
 
                 }

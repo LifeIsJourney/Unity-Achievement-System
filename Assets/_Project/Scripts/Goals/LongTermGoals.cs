@@ -34,10 +34,14 @@ namespace AchievementSystem
                 out savedAchievements, achievementIDs,AchievementCompleted);
 
             achievementItems = new List<AchievementItemController>();
-            achievementItems = achievementManager.LoadAchievementsTable(achievementItemPrefab, achievementItems,
+           
+        }
+        public void ShowingAchievementUI()
+        {
+            if (achievementItems.Count == 0)
+                achievementItems = achievementManager.LoadAchievementsTable(achievementItemPrefab, achievementItems,
             currentAchievements.achievements, achievementItemParentTransform);
         }
-
         private static List<AchievementID> GetAchievementIds()
         {
             List<AchievementID> achievementList = new List<AchievementID>();
@@ -55,7 +59,7 @@ namespace AchievementSystem
      
         void AchievementCompleted(string achievementId)
         {
-            achievementManager.UnlockAchievement(achievementId,achievementItems);
+            achievementManager.UnlockAchievement(achievementId,currentAchievements.achievements);
         }
 
         public void SaveAchievements()

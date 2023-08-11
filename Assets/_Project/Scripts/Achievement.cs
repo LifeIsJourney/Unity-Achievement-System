@@ -27,6 +27,7 @@ namespace AchievementSystem
         public int[] changingValue { get; set; }
         public char charValue { get; set; }
         public int progress { get; set; }
+        public bool isCompleted { get; set; }
 
         public Action<string> onAchievementCompleted;
         public Achievement(string id, string title, string description,
@@ -81,11 +82,14 @@ namespace AchievementSystem
         /// </summary>
         public void HitByUser()
         {
-            int targetValue = changingValue[0];
+            if(!isCompleted)
+            {
+                int targetValue = changingValue[0];
 
-            if (progress <= targetValue - 1) progress++;
+                if (progress <= targetValue - 1) progress++;
 
-            if (IsReadyToClaim()) onAchievementCompleted?.Invoke(id);
+                if (IsReadyToClaim()) { onAchievementCompleted?.Invoke(id); isCompleted = true; }
+            }
         }
 
         public void IncrementUserLevelNreset()
@@ -104,6 +108,7 @@ namespace AchievementSystem
         void ResetAchievement()
         {
             progress = 0;
+            isCompleted = false;
         }
     }
 }

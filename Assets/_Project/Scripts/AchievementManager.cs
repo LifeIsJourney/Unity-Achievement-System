@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Analytics;
 
@@ -21,6 +22,7 @@ namespace AchievementSystem
         [SerializeField] AchievementsMaker achievementsMaker;
         [SerializeField] DailyGoals dailyGoals;
         [SerializeField] LongTermGoals longTermGoals;
+        [SerializeField] GameObject achievementGo;
         
         public AchievementID achievementToShow;
 
@@ -30,6 +32,11 @@ namespace AchievementSystem
 
         public int levelCompleted = 20;
 
+        public static AchievementManager Instance;
+        void Awake()
+        {
+            Instance = this;
+        }
         private void Start()
         {
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;
@@ -40,24 +47,10 @@ namespace AchievementSystem
         private void OnDisable()
         {
            longTermGoals.SaveAchievements();
-            dailyGoals.SaveAchievements();
+           dailyGoals.SaveAchievements();
         }
 
-        /// <summary>
-        /// Call this from other class when achievent event hit by user
-        /// </summary>
-        /// <param name="achievementId"></param>
-        public void AchievementHit(AchievementID achievementId)
-        {
-            foreach (var achievement in longTermGoals.currentAchievements.achievements)
-            {
-                if (achievement.id == achievementId.ToString()) achievement.HitByUser();
-            }
-            RefreshAchievement(longTermGoals.achievementItems);
-
-            dailyGoals.CheckIfDailyGoalAchievementHit(achievementId.ToString());
-        }
-
+      
 
         public void ShowNotification(Achievement achievement)
         {
@@ -75,6 +68,17 @@ namespace AchievementSystem
         private void HandleAchievementDropdownValueChanged(AchievementID achievement)
         {
             achievementToShow = achievement;
+        }
+
+        public void ShowAchievementUI()
+        {
+            achievementGo.SetActive(true);
+            dailyGoals.ShowingAchievementUI();
+            longTermGoals.ShowingAchievementUI();
+        }
+        public void HideAchievementUI()
+        {
+            achievementGo.SetActive(false);
         }
 
         [ContextMenu("LoadAchievementsTable()")]
@@ -95,7 +99,7 @@ namespace AchievementSystem
                 GameObject obj = Instantiate(prefab.gameObject, parentTransform);
                 AchievementItemController item = obj.GetComponent<AchievementItemController>();
                 bool unlocked = PlayerPrefs.GetInt(achievement.id, 0) == 1;
-                item.unlocked = unlocked;
+                item.completed = unlocked;
                 item.achievement = achievement;
                 item.RefreshView();
                 achievementItems.Add(item);
@@ -112,24 +116,24 @@ namespace AchievementSystem
         }
 
       
-        public void UnlockAchievement(string achievement,List<AchievementItemController> achievementItems)
+        public void UnlockAchievement(string achievement,List<Achievement> achievementItems)
         {
-            AchievementItemController item = null;
+            Achievement item = null;
 
             foreach (var achievementItem in achievementItems)
             {
-                if (achievementItem.achievement.id == achievement)
+                if (achievementItem.id == achievement)
                 { item = achievementItem; break; }
             }
 
             if (item == null) { Debug.LogError("Unable to find returning..."); return; }
-            //get int value and time from saved value
-            if (item.unlocked)
-                return;
+          
+            ShowNotification(item);
 
-            ShowNotification(item.achievement);
-            item.unlocked = true;
-            item.RefreshView();
+            if (dailyGoals.CheckIfAchievementPresent(item)) { 
+                Debug.Log("Reward user");
+            }
+
         }
 
         public void LockAllAchievements()
@@ -140,11 +144,95 @@ namespace AchievementSystem
             }
             foreach (AchievementItemController item in longTermGoals.achievementItems)
             {
-                item.unlocked = false;
+                item.completed = false;
                 item.RefreshView();
             }
         }
 
+        /// <summary>
+        /// Call this from other class when achievent event hit by user except word achievements
+        /// </summary>
+        /// <param name="achievementId"></param>
+        public void AchievementHit(AchievementID achievementId)
+        {
+            foreach (var achievement in longTermGoals.currentAchievements.achievements)
+            {
+                if (achievement.id == achievementId.ToString()) achievement.HitByUser();
+            }
+            RefreshAchievement(longTermGoals.achievementItems);
+
+            dailyGoals.CheckIfDailyGoalAchievementHit(achievementId.ToString());
+        }
+        public void CheckForWordAchievements(string word)
+        {
+            CheckAchievement(AchievementID.PlayWord, word[0]);
+            CheckAchievement(AchievementID.MakeLetterWords, word.Length);
+            CheckAchievement(AchievementID.MakeVovelsWords, IsContainVovels(word));
+        }
+
+        private void CheckAchievement(AchievementID achievementId, object value)
+        {
+            Achievement wordAchievement = GetAchievement(longTermGoals.currentAchievements.achievements, achievementId);
+
+            if (wordAchievement != null)
+            {
+                switch (achievementId)
+                {
+                    case AchievementID.PlayWord:
+                        if ((char)value == wordAchievement.charValue) wordAchievement.HitByUser();
+                        break;
+
+                    case AchievementID.MakeLetterWords:
+                        if ((int)value == wordAchievement.changingValue[1]) wordAchievement.HitByUser();
+                        break;
+
+                    case AchievementID.MakeVovelsWords:
+                        if ((bool)value) wordAchievement.HitByUser();
+                        break;
+                }
+            }
+
+            wordAchievement = GetAchievement(dailyGoals.currentAchievements.achievements, achievementId);
+
+            if (wordAchievement != null)
+            {
+                switch (achievementId)
+                {
+                    case AchievementID.PlayWord:
+                        if ((char)value == wordAchievement.charValue) wordAchievement.HitByUser();
+                        break;
+
+                    case AchievementID.MakeLetterWords:
+                        if ((int)value == wordAchievement.changingValue[1]) wordAchievement.HitByUser();
+                        break;
+
+                    case AchievementID.MakeVovelsWords:
+                        if ((bool)value) wordAchievement.HitByUser();
+                        break;
+                }
+            }
+        }
+
+        // Create a list of vowels
+        char[] vowels = { 'a', 'e', 'i', 'o', 'u' };
+        bool IsContainVovels(string word)
+        {
+            // Check if the word contains any vowels
+            bool containsVowels = false;
+            for (int i = 0; i < word.Length; i++)
+            {
+                if (vowels.Contains(word[i]))
+                {
+                    containsVowels = true;
+                    break;
+                }
+            }
+            return containsVowels;
+        }
+        Achievement GetAchievement(List<Achievement> achievements,AchievementID achievementID)
+        {
+            return achievements.Find(ach => ach.id == achievementID.ToString());
+        }
      
         //Debug
         public void D_ShowNotificaion()
@@ -163,8 +251,8 @@ namespace AchievementSystem
         }
         public void D_AchievementUnlocked(string achievement)
         {
-            UnlockAchievement(achievement.ToString(), dailyGoals.achievementItems);
-            UnlockAchievement(achievement.ToString(), longTermGoals.achievementItems);
+            UnlockAchievement(achievement.ToString(), dailyGoals.currentAchievements.achievements);
+            UnlockAchievement(achievement.ToString(), longTermGoals.currentAchievements.achievements);
         }
     }
 }

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace AchievementSystem
 {
+    /// <summary>
+    /// Daily goals - Will reward user as soon as achievement completed as it will reset the next day.
+    /// </summary>
     public class DailyGoals : MonoBehaviour
     {
         public List<List<AchievementID>> AchievementIDsGroup = new List<List<AchievementID>>
@@ -38,6 +41,9 @@ namespace AchievementSystem
         DateTime lastResetTime; // The last time the daily goals were reset
         public List<AchievementItemController> achievementItems;
 
+        public bool CheckIfAchievementPresent(Achievement achievement)
+            => currentAchievements.achievements.Contains(achievement); 
+
         // Method to initialize daily goal achievements and reset if needed
         public void InitializeDailyGoals(AchievementDatabase achievementDatabase)
         {
@@ -56,12 +62,35 @@ namespace AchievementSystem
                 ResetDailyGoals();
             }
 
+            
+        }
+
+        public void ShowingAchievementUI()
+        {
+            if(achievementItems.Count == 0)
             //save and load values using parse data same as other achievements
             achievementItems = achievementManager.LoadAchievementsTable(achievementItemPrefab, achievementItems,
                 currentAchievements.achievements, achievementItemParentTransform);
+        }
+        public void CheckIfDailyGoalAchievementHit(string achievementId)
+        {
+            Achievement achievement = currentAchievements.achievements.Find(ach => ach.id == achievementId);
 
+            if (achievement != null) achievement.HitByUser();
+
+            if(CheckIfAchievementNotCompleted(achievementId))
+                achievementManager.RefreshAchievement(achievementItems);
         }
 
+        public void SaveAchievements()
+        {
+            AchievementPP.SaveNewAchievements(PrefsKey, currentAchievements.achievements, out savedAchievements);
+        }
+
+        public void Restart()
+        {
+            PlayerPrefs.DeleteKey(PrefsKey);
+        }
         private void GetLastResetTime()
         {
             if (!PlayerPrefs.HasKey(ResetTimePrefsKey))
@@ -78,17 +107,15 @@ namespace AchievementSystem
             PlayerPrefs.SetString(ResetTimePrefsKey, lastResetTime.ToString());
         }
 
-        public void CheckIfDailyGoalAchievementHit(string achievementId)
+        bool CheckIfAchievementNotCompleted(string achievementId)
         {
-            Achievement achievement = currentAchievements.achievements.Find(ach => ach.id == achievementId);
-
-            if (achievement != null)
+            foreach (var achievement in achievementItems)
             {
-                achievement.HitByUser();
-                achievementManager.RefreshAchievement(achievementItems);
+                if (achievement.achievement.id.ToString() == achievementId && !achievement.completed)
+                    return true;
             }
+            return false;
         }
-
         private void LoadOrCreateDailyGoals(AchievementDatabase achievementDatabase)
         {
             // Randomly choose 3 daily goal achievements from the pool of available achievements
@@ -111,7 +138,7 @@ namespace AchievementSystem
 
         void AchievementCompleted(string achievementId)
         {
-            achievementManager.UnlockAchievement(achievementId,achievementItems);
+            achievementManager.UnlockAchievement(achievementId,currentAchievements.achievements);
         }
       
         List<AchievementID> GetAchievementIDs()
@@ -132,6 +159,11 @@ namespace AchievementSystem
             {
                 // Reset the progress and last completion time
                 dailyGoal.progress = 0;
+                dailyGoal.isCompleted = false;
+            }
+            foreach (var achievementItem in achievementItems)
+            {
+                achievementItem.completed = false;
             }
 
             UpdateLastResetTime();
@@ -140,15 +172,5 @@ namespace AchievementSystem
             SaveDailyGoals();
         }
 
-        public void SaveAchievements()
-        {
-            AchievementPP.SaveNewAchievements(PrefsKey,currentAchievements.achievements,out savedAchievements);
-        }
-
-        public void Restart()
-        {
-            PlayerPrefs.DeleteKey(PrefsKey);
-
-        }
     }
 }

@@ -20,7 +20,7 @@ namespace AchievementSystem
         [SerializeField] ProgressBar progressBar;
         [SerializeField] GameObject claimButtom;
 
-        public bool unlocked;
+        public bool completed;
         public Achievement achievement;
 
         public void RefreshView()
@@ -28,8 +28,8 @@ namespace AchievementSystem
             titleLabel.text = achievement.title;
             descriptionLabel.text = achievement.description;
 
-            unlockedIcon.enabled = unlocked;
-            lockedIcon.enabled = !unlocked;
+            unlockedIcon.enabled = completed;
+            lockedIcon.enabled = !completed;
 
             progressBar.Refresh(achievement.progress, achievement.changingValue[0]);
 
