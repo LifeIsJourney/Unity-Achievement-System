@@ -30,11 +30,6 @@ namespace AchievementSystem
 
         public int levelCompleted = 20;
 
-        //later convert this into property
-        //[HideInInspector]
-        //[NonSerialized]
-      
-
         private void Start()
         {
             achievementDropdownController.onValueChanged += HandleAchievementDropdownValueChanged;

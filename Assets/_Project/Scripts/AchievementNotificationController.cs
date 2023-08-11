@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace AchievementSystem
 {
@@ -12,7 +13,7 @@ namespace AchievementSystem
     public class AchievementNotificationController : MonoBehaviour
     {
 
-        [SerializeField] Text achievementTitleLabel;
+        [SerializeField] TextMeshProUGUI achievementTitleLabel;
 
         private Animator m_animator;
 

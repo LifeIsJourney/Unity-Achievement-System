@@ -91,16 +91,6 @@ namespace AchievementSystem
 
         private void LoadOrCreateDailyGoals(AchievementDatabase achievementDatabase)
         {
-            // Load daily goal data from PlayerPrefs or create new daily goals
-            //AchievementPP.LoadAchievements(PrefsKey, out savedAchievements);
-            //dailyGoalAchievements.achievements = AchievementUtility.GetLoadedAchievements(achievementDatabase,
-            //   savedAchievements);
-
-            //if (dailyGoalAchievements.achievements.Count == 0)
-            //{ 
-            //   dailyGoalAchievements.achievements = CreateNewDailyGoals(achievementDatabase, 
-            //       dailyGoalAchievements.achievements);
-            //}
             // Randomly choose 3 daily goal achievements from the pool of available achievements
             List<AchievementID> achievementIDs = GetAchievementIDs();
 
@@ -123,24 +113,7 @@ namespace AchievementSystem
         {
             achievementManager.UnlockAchievement(achievementId,achievementItems);
         }
-        //private List<Achievement> CreateNewDailyGoals(AchievementDatabase achievementDatabase,
-        //    List<Achievement> loadedAchievements)
-        //{
-        //    List<string> achievementValues = new List<string>();
-        //    List<AchievementID> achievementIDs = new List<AchievementID>();
-        //    // Randomly choose 3 daily goal achievements from the pool of available achievements
-        //    List<AchievementID> allAchievementIDs = GetAchievementIDs();
-
-        //    achievementValues = achievementMaker.CreateNewAchievements(allAchievementIDs);
-
-        //    AchievementPP.SaveNewAchievements(PrefsKey,allAchievementIDs, achievementValues,
-        //        out savedAchievements);
-
-        //    loadedAchievements = AchievementUtility.GetLoadedAchievements(achievementDatabase,
-        //        savedAchievements);
-        //    return loadedAchievements;
-        //}
-
+      
         List<AchievementID> GetAchievementIDs()
         {
             WeightedRandomSelector<int> weightedRandom = new WeightedRandomSelector<int>();
